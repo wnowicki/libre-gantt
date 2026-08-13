@@ -1,3 +1,4 @@
+from datetime import datetime
 from pathlib import Path
 
 import pytest
@@ -27,6 +28,33 @@ def test_timeline_buckets_cover_project() -> None:
     monthly = buckets(project.start, project.finish, "monthly")
     assert len(weekly) > len(monthly)
     assert weekly[0][0] <= project.start < weekly[-1][1]
+
+
+def test_fortnightly_buckets_are_calendar_half_months() -> None:
+    periods = buckets(
+        datetime.fromisoformat("2026-01-10T08:00:00"),
+        datetime.fromisoformat("2026-02-20T17:00:00"),
+        "fortnightly",
+    )
+
+    assert periods == [
+        (
+            datetime.fromisoformat("2026-01-01T00:00:00"),
+            datetime.fromisoformat("2026-01-16T00:00:00"),
+        ),
+        (
+            datetime.fromisoformat("2026-01-16T00:00:00"),
+            datetime.fromisoformat("2026-02-01T00:00:00"),
+        ),
+        (
+            datetime.fromisoformat("2026-02-01T00:00:00"),
+            datetime.fromisoformat("2026-02-16T00:00:00"),
+        ),
+        (
+            datetime.fromisoformat("2026-02-16T00:00:00"),
+            datetime.fromisoformat("2026-03-01T00:00:00"),
+        ),
+    ]
 
 
 def test_models_validate_assignment() -> None:

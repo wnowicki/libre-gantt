@@ -35,6 +35,7 @@ class Paper(str, Enum):
 class Timeline(str, Enum):
     daily = "daily"
     weekly = "weekly"
+    fortnightly = "fortnightly"
     monthly = "monthly"
 
 

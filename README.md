@@ -40,7 +40,9 @@ uv run libre-gantt export project.xml \
   --header "Portfolio roadmap" --version "v1.0"
 ```
 
-Available timeline scales are `daily`, `weekly`, and `monthly`. PDF output is
+Available timeline scales are `daily`, `weekly`, `fortnightly`, and `monthly`.
+Fortnightly uses two calendar-aligned periods per month: the 1st through the
+15th, and the 16th through the end of the month. PDF output is
 always landscape. Excel output includes landscape print settings, repeating
 headers, frozen task columns, filters, outline levels, and a one-page-wide
 print area. If `--output` is omitted, the result is written next to the XML as

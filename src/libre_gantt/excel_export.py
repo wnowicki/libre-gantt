@@ -69,14 +69,18 @@ def export_excel(
             "bg_color": navy,
             "align": "center",
             "valign": "vcenter",
-            "num_format": "dd" if scale == "daily" else "dd mmm" if scale == "weekly" else "mmm",
+            "num_format": ("dd" if scale == "daily" else "dd mmm" if scale != "monthly" else "mmm"),
         }
     )
     hidden_date_fmt = book.add_format({"num_format": "yyyy-mm-dd"})
     for col, (period_start, period_end) in enumerate(periods, first_timeline_col):
         sheet.write_datetime(3, col, period_end, hidden_date_fmt)
         sheet.write_datetime(header_row, col, period_start, timeline_head_fmt)
-        sheet.set_column(col, col, 3 if scale == "daily" else 7 if scale == "weekly" else 9)
+        sheet.set_column(
+            col,
+            col,
+            3 if scale == "daily" else 7 if scale in {"weekly", "fortnightly"} else 9,
+        )
     sheet.set_row(3, None, None, {"hidden": True})
 
     for row_index, task in enumerate(tasks, header_row + 1):
