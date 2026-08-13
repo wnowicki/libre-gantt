@@ -1,0 +1,6 @@
+[project]
+name = "libre-gantt"
+version = "0.1.0"
+description = "Create print-ready PDF and editable Excel Gantt charts from Microsoft Project XML"
+readme = "README.md"
+license = { file = "LICENSE" }
