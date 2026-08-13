@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, time
 from enum import Enum
 from pathlib import Path
 from typing import Annotated
@@ -65,6 +65,18 @@ def export(
     format: Annotated[OutputFormat, typer.Option("--format", "-f")] = OutputFormat.pdf,
     paper: Annotated[Paper, typer.Option(help="Landscape paper size")] = Paper.a3,
     timeline: Annotated[Timeline, typer.Option(help="Timeline column scale")] = Timeline.weekly,
+    start_date: Annotated[
+        datetime | None,
+        typer.Option(
+            formats=["%Y-%m-%d"], help="First date to include in the timeline (YYYY-MM-DD)"
+        ),
+    ] = None,
+    end_date: Annotated[
+        datetime | None,
+        typer.Option(
+            formats=["%Y-%m-%d"], help="Last date to include in the timeline (YYYY-MM-DD)"
+        ),
+    ] = None,
     detail: Annotated[
         Detail, typer.Option(help="Top-level tasks only or all subtasks")
     ] = Detail.all,
@@ -89,13 +101,18 @@ def export(
 ) -> None:
     """Export a ProjectLibre/Microsoft Project XML schedule."""
     project = parse_project(input_file)
+    scope_start = datetime.combine(start_date.date(), time.min) if start_date else project.start
+    scope_finish = datetime.combine(end_date.date(), time.max) if end_date else project.finish
+    if scope_start > scope_finish:
+        raise typer.BadParameter("--start-date must be on or before --end-date")
     tasks = (
         project.tasks
         if detail is Detail.all
         else [task for task in project.tasks if task.outline_level == 1]
     )
+    tasks = [task for task in tasks if task.start <= scope_finish and task.finish >= scope_start]
     if not tasks:
-        raise typer.BadParameter("The selected detail level contains no tasks")
+        raise typer.BadParameter("The selected detail level and date scope contain no tasks")
     if assignees and detail is Detail.top:
         typer.echo(
             "Note: assignees are only shown in detailed view; ignoring --assignees.",
@@ -123,6 +140,8 @@ def export(
         resolved_version,
         assignees,
         palette.value,
+        scope_start,
+        scope_finish,
     )
     typer.echo(f"Created {destination}")
 

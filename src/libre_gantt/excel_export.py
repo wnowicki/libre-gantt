@@ -23,6 +23,8 @@ def export_excel(
     version: str | None,
     show_assignees: bool,
     palette: str,
+    scope_start: datetime | None = None,
+    scope_finish: datetime | None = None,
 ) -> None:
     book = xlsxwriter.Workbook(output)
     sheet = book.add_worksheet("Gantt")
@@ -40,7 +42,7 @@ def export_excel(
     )
     date_fmt = book.add_format({"num_format": "yyyy-mm-dd", "font_color": "#243746"})
     pct_fmt = book.add_format({"num_format": "0%", "font_color": "#243746"})
-    periods = buckets(project.start, project.finish, scale)
+    periods = buckets(scope_start or project.start, scope_finish or project.finish, scale)
     colors_by_root = project_color_map(tasks)
     fixed_headers = ["Outline", "Task", "Start", "Finish", "Progress"] + (
         ["Assignees"] if show_assignees else []

@@ -39,6 +39,8 @@ def export_pdf(
     version: str | None,
     show_assignees: bool,
     palette: str,
+    scope_start: datetime | None = None,
+    scope_finish: datetime | None = None,
 ) -> None:
     page_size = landscape(A3 if paper == "a3" else A4)
     width, height = page_size
@@ -46,7 +48,7 @@ def export_pdf(
     usable_h = height - 2 * margin - title_h - timeline_h - footer_h
     per_page = max(1, int(usable_h // row_h))
     canvas = Canvas(str(output), pagesize=page_size)
-    periods = buckets(project.start, project.finish, scale)
+    periods = buckets(scope_start or project.start, scope_finish or project.finish, scale)
     colors_by_root = project_color_map(tasks)
 
     for page_start in range(0, len(tasks), per_page):
@@ -125,11 +127,15 @@ def export_pdf(
             total = max(1.0, (periods[-1][1] - periods[0][0]).total_seconds())
             sx = (
                 timeline_x
-                + timeline_w * max(0, (task.start - periods[0][0]).total_seconds()) / total
+                + timeline_w
+                * min(total, max(0, (task.start - periods[0][0]).total_seconds()))
+                / total
             )
             ex = (
                 timeline_x
-                + timeline_w * min(total, (task.finish - periods[0][0]).total_seconds()) / total
+                + timeline_w
+                * min(total, max(0, (task.finish - periods[0][0]).total_seconds()))
+                / total
             )
             cy = y + row_h / 2
             if task.milestone:

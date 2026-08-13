@@ -46,6 +46,10 @@ headers, frozen task columns, filters, outline levels, and a one-page-wide
 print area. If `--output` is omitted, the result is written next to the XML as
 `<name>-gantt.pdf` or `<name>-gantt.xlsx`.
 
+Limit an export to an inclusive date window with `--start-date YYYY-MM-DD` and
+`--end-date YYYY-MM-DD`. Either limit may be used independently. Tasks that
+overlap the window are included, with their timeline bars clipped to its edges.
+
 ## Security
 
 If you discover any security-related issues, please email [email](mailto:wnowicki@me.com) instead of using the issue tracker.
