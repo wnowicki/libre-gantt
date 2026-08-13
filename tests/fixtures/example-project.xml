@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Project xmlns="http://schemas.microsoft.com/project">
+  <Name>Example Project</Name>
+  <Title>Example Delivery Plan</Title>
+  <Manager>Example Manager</Manager>
+  <StartDate>2026-01-05T08:00:00</StartDate>
+  <FinishDate>2026-03-31T17:00:00</FinishDate>
+  <Tasks>
+    <Task>
+      <UID>1</UID><Name>Discovery</Name><OutlineNumber>1</OutlineNumber>
+      <OutlineLevel>1</OutlineLevel><Start>2026-01-05T08:00:00</Start>
+      <Finish>2026-01-30T17:00:00</Finish><Duration>PT160H0M0S</Duration>
+      <PercentComplete>50</PercentComplete><Summary>1</Summary><Milestone>0</Milestone>
+    </Task>
+    <Task>
+      <UID>2</UID><Name>Research</Name><OutlineNumber>1.1</OutlineNumber>
+      <OutlineLevel>2</OutlineLevel><Start>2026-01-05T08:00:00</Start>
+      <Finish>2026-01-16T17:00:00</Finish><Duration>PT80H0M0S</Duration>
+      <PercentComplete>100</PercentComplete><Summary>0</Summary><Milestone>0</Milestone>
+    </Task>
+    <Task>
+      <UID>3</UID><Name>Approval</Name><OutlineNumber>1.2</OutlineNumber>
+      <OutlineLevel>2</OutlineLevel><Start>2026-01-30T17:00:00</Start>
+      <Finish>2026-01-30T17:00:00</Finish><Duration>PT0H0M0S</Duration>
+      <PercentComplete>0</PercentComplete><Summary>0</Summary><Milestone>1</Milestone>
+      <PredecessorLink><PredecessorUID>2</PredecessorUID><Type>1</Type></PredecessorLink>
+    </Task>
+    <Task>
+      <UID>4</UID><Name>Delivery</Name><OutlineNumber>2</OutlineNumber>
+      <OutlineLevel>1</OutlineLevel><Start>2026-02-02T08:00:00</Start>
+      <Finish>2026-03-31T17:00:00</Finish><Duration>PT336H0M0S</Duration>
+      <PercentComplete>10</PercentComplete><Summary>1</Summary><Milestone>0</Milestone>
+    </Task>
+    <Task>
+      <UID>5</UID><Name>Implementation</Name><OutlineNumber>2.1</OutlineNumber>
+      <OutlineLevel>2</OutlineLevel><Start>2026-02-02T08:00:00</Start>
+      <Finish>2026-03-31T17:00:00</Finish><Duration>PT336H0M0S</Duration>
+      <PercentComplete>10</PercentComplete><Summary>0</Summary><Milestone>0</Milestone>
+    </Task>
+  </Tasks>
+  <Resources>
+    <Resource><UID>1</UID><Name>Alex Example</Name></Resource>
+  </Resources>
+  <Assignments>
+    <Assignment><UID>1</UID><TaskUID>2</TaskUID><ResourceUID>1</ResourceUID></Assignment>
+    <Assignment><UID>2</UID><TaskUID>5</TaskUID><ResourceUID>1</ResourceUID></Assignment>
+  </Assignments>
+</Project>

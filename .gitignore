@@ -1,6 +1,6 @@
-*.xml
-*.pdf
-*xlsx
+/*.xml
+/*.pdf
+/*xlsx
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
