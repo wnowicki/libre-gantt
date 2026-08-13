@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import date
+from datetime import datetime
 from enum import Enum
 from pathlib import Path
 from typing import Annotated
@@ -43,6 +43,11 @@ class Detail(str, Enum):
     all = "all"
 
 
+class Palette(str, Enum):
+    monochrome = "monochrome"
+    projects = "projects"
+
+
 @app.command()
 def export(
     input_file: Annotated[
@@ -59,29 +64,24 @@ def export(
     ] = None,
     format: Annotated[OutputFormat, typer.Option("--format", "-f")] = OutputFormat.pdf,
     paper: Annotated[Paper, typer.Option(help="Landscape paper size")] = Paper.a3,
-    timeline: Annotated[
-        Timeline, typer.Option(help="Timeline column scale")
-    ] = Timeline.weekly,
+    timeline: Annotated[Timeline, typer.Option(help="Timeline column scale")] = Timeline.weekly,
     detail: Annotated[
         Detail, typer.Option(help="Top-level tasks only or all subtasks")
     ] = Detail.all,
+    palette: Annotated[
+        Palette, typer.Option(help="Colour treatment for project bars")
+    ] = Palette.projects,
     assignees: Annotated[
         bool,
-        typer.Option(
-            "--assignees/--no-assignees", help="Include assignees in detailed view"
-        ),
+        typer.Option("--assignees/--no-assignees", help="Include assignees in detailed view"),
     ] = False,
     header: Annotated[
         str | None, typer.Option(help="Document title; defaults to project title")
     ] = None,
-    subheader: Annotated[
-        str | None, typer.Option(help="Optional document subtitle")
-    ] = None,
+    subheader: Annotated[str | None, typer.Option(help="Optional document subtitle")] = None,
     generation_date: Annotated[
         bool,
-        typer.Option(
-            "--generation-date/--no-generation-date", help="Show generation date"
-        ),
+        typer.Option("--generation-date/--no-generation-date", help="Show generation date"),
     ] = True,
     version: Annotated[
         str | None, typer.Option(help="Version label; use 'date' for today's date")
@@ -102,13 +102,13 @@ def export(
             err=True,
         )
         assignees = False
-    resolved_version = date.today().isoformat() if version == "date" else version
+    resolved_version = (
+        datetime.now().astimezone().date().isoformat() if version == "date" else version
+    )
     suffix = ".pdf" if format is OutputFormat.pdf else ".xlsx"
     destination = output or input_file.with_name(f"{input_file.stem}-gantt{suffix}")
     if destination.suffix.lower() != suffix:
-        raise typer.BadParameter(
-            f"Output for {format.value} must use the {suffix} extension"
-        )
+        raise typer.BadParameter(f"Output for {format.value} must use the {suffix} extension")
     destination.parent.mkdir(parents=True, exist_ok=True)
     exporter = export_pdf if format is OutputFormat.pdf else export_excel
     exporter(
@@ -122,6 +122,7 @@ def export(
         generation_date,
         resolved_version,
         assignees,
+        palette.value,
     )
     typer.echo(f"Created {destination}")
 

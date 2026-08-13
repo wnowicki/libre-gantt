@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import date
+from datetime import datetime
 from pathlib import Path
 
 from reportlab.lib import colors
@@ -9,6 +9,7 @@ from reportlab.pdfbase.pdfmetrics import stringWidth
 from reportlab.pdfgen.canvas import Canvas
 
 from .model import Project, Task
+from .palette import mix, project_color_map, task_colors
 from .timeline import Scale, buckets, label
 
 NAVY = colors.HexColor("#18324A")
@@ -37,6 +38,7 @@ def export_pdf(
     show_generation_date: bool,
     version: str | None,
     show_assignees: bool,
+    palette: str,
 ) -> None:
     page_size = landscape(A3 if paper == "a3" else A4)
     width, height = page_size
@@ -45,6 +47,7 @@ def export_pdf(
     per_page = max(1, int(usable_h // row_h))
     canvas = Canvas(str(output), pagesize=page_size)
     periods = buckets(project.start, project.finish, scale)
+    colors_by_root = project_color_map(tasks)
 
     for page_start in range(0, len(tasks), per_page):
         page_tasks = tasks[page_start : page_start + per_page]
@@ -58,13 +61,11 @@ def export_pdf(
             canvas.drawString(margin, height - margin - 32, subheader)
         meta = []
         if show_generation_date:
-            meta.append(f"Generated: {date.today().isoformat()}")
+            meta.append(f"Generated: {datetime.now().astimezone().date().isoformat()}")
         if version:
             meta.append(f"Version: {version}")
         if meta:
-            canvas.drawRightString(
-                width - margin, height - margin - 16, "  |  ".join(meta)
-            )
+            canvas.drawRightString(width - margin, height - margin - 16, "  |  ".join(meta))
 
         assignee_w = 92 if show_assignees else 0
         table_w = min(width * 0.46, 390) + assignee_w
@@ -76,9 +77,7 @@ def export_pdf(
             cols.append(("Assignees", assignee_w))
         y_top = height - margin - title_h
         canvas.setFillColor(NAVY)
-        canvas.rect(
-            margin, y_top - timeline_h, width - 2 * margin, timeline_h, fill=1, stroke=0
-        )
+        canvas.rect(margin, y_top - timeline_h, width - 2 * margin, timeline_h, fill=1, stroke=0)
         canvas.setFillColor(colors.white)
         canvas.setFont("Helvetica-Bold", 7)
         x = margin
@@ -99,11 +98,10 @@ def export_pdf(
         body_top = y_top - timeline_h
         for row, task in enumerate(page_tasks):
             y = body_top - (row + 1) * row_h
-            canvas.setFillColor(
-                PALE
-                if task.summary
-                else (colors.white if row % 2 == 0 else colors.HexColor("#F7F9FB"))
-            )
+            bar_color, row_color = task_colors(task, palette, colors_by_root)
+            if palette == "monochrome" and not task.summary and row % 2:
+                row_color = "#F7F9FB"
+            canvas.setFillColor(colors.HexColor(row_color))
             canvas.rect(margin, y, width - 2 * margin, row_h, fill=1, stroke=0)
             canvas.setStrokeColor(GRID)
             canvas.line(margin, y, width - margin, y)
@@ -122,26 +120,20 @@ def export_pdf(
             canvas.drawRightString(x + 34, y + 6, f"{task.percent_complete}%")
             x += 38
             if show_assignees:
-                canvas.drawString(
-                    x + 3, y + 6, _clip(", ".join(task.assignees), assignee_w - 6, 7)
-                )
+                canvas.drawString(x + 3, y + 6, _clip(", ".join(task.assignees), assignee_w - 6, 7))
 
             total = max(1.0, (periods[-1][1] - periods[0][0]).total_seconds())
             sx = (
                 timeline_x
-                + timeline_w
-                * max(0, (task.start - periods[0][0]).total_seconds())
-                / total
+                + timeline_w * max(0, (task.start - periods[0][0]).total_seconds()) / total
             )
             ex = (
                 timeline_x
-                + timeline_w
-                * min(total, (task.finish - periods[0][0]).total_seconds())
-                / total
+                + timeline_w * min(total, (task.finish - periods[0][0]).total_seconds()) / total
             )
             cy = y + row_h / 2
             if task.milestone:
-                canvas.setFillColor(NAVY)
+                canvas.setFillColor(colors.HexColor(bar_color))
                 canvas.saveState()
                 canvas.translate(sx, cy)
                 canvas.rotate(45)
@@ -149,12 +141,10 @@ def export_pdf(
                 canvas.restoreState()
             else:
                 bar_h = 7 if not task.summary else 5
-                canvas.setFillColor(NAVY if task.summary else BLUE)
-                canvas.roundRect(
-                    sx, cy - bar_h / 2, max(2, ex - sx), bar_h, 2, fill=1, stroke=0
-                )
+                canvas.setFillColor(colors.HexColor(bar_color))
+                canvas.roundRect(sx, cy - bar_h / 2, max(2, ex - sx), bar_h, 2, fill=1, stroke=0)
                 if task.percent_complete and not task.summary:
-                    canvas.setFillColor(colors.HexColor("#174A70"))
+                    canvas.setFillColor(colors.HexColor(mix(bar_color, "#000000", 0.25)))
                     canvas.roundRect(
                         sx,
                         cy - bar_h / 2,
@@ -171,9 +161,7 @@ def export_pdf(
             canvas.line(x, body_top, x, body_top - len(page_tasks) * row_h)
         canvas.setFillColor(colors.HexColor("#607484"))
         canvas.setFont("Helvetica", 7)
-        canvas.drawString(
-            margin, margin, f"{project.name} | {scale.capitalize()} timeline"
-        )
+        canvas.drawString(margin, margin, f"{project.name} | {scale.capitalize()} timeline")
         canvas.drawRightString(
             width - margin,
             margin,

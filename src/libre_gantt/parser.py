@@ -13,7 +13,7 @@ def _text(node: ET.Element, name: str, default: str = "") -> str:
 
 
 def _date(value: str) -> datetime:
-    return datetime.fromisoformat(value.replace("Z", "+00:00"))
+    return datetime.fromisoformat(value)
 
 
 def parse_project(path: Path) -> Project:
@@ -63,8 +63,6 @@ def parse_project(path: Path) -> Project:
         title=_text(root, "Title", _text(root, "Name", path.stem)),
         manager=_text(root, "Manager"),
         start=_date(_text(root, "StartDate", min(t.start for t in tasks).isoformat())),
-        finish=_date(
-            _text(root, "FinishDate", max(t.finish for t in tasks).isoformat())
-        ),
+        finish=_date(_text(root, "FinishDate", max(t.finish for t in tasks).isoformat())),
         tasks=tasks,
     )

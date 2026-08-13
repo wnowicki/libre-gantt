@@ -25,9 +25,7 @@ def next_date(value: datetime, scale: Scale) -> datetime:
     return value.replace(year=year, month=month, day=1)
 
 
-def buckets(
-    start: datetime, finish: datetime, scale: Scale
-) -> list[tuple[datetime, datetime]]:
+def buckets(start: datetime, finish: datetime, scale: Scale) -> list[tuple[datetime, datetime]]:
     result = []
     cursor = floor_date(start, scale)
     while cursor <= finish:

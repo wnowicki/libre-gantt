@@ -30,3 +30,8 @@ packages = ["src/libre_gantt"]
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]
+
+[tool.ruff]
+
+line-length = 100
+extend-exclude = ["*.ipynb"]

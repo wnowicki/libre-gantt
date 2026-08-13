@@ -1,12 +1,13 @@
 from __future__ import annotations
 
-from datetime import date
+from datetime import datetime
 from pathlib import Path
 
 import xlsxwriter
 from xlsxwriter.utility import xl_col_to_name
 
 from .model import Project, Task
+from .palette import project_color_map, task_colors
 from .timeline import Scale, buckets
 
 
@@ -21,10 +22,11 @@ def export_excel(
     show_generation_date: bool,
     version: str | None,
     show_assignees: bool,
+    palette: str,
 ) -> None:
     book = xlsxwriter.Workbook(output)
     sheet = book.add_worksheet("Gantt")
-    navy, blue, pale = "#18324A", "#2878B5", "#EAF2F8"
+    navy = "#18324A"
     title_fmt = book.add_format({"bold": True, "font_size": 18, "font_color": navy})
     subtitle_fmt = book.add_format({"font_size": 10, "font_color": "#526777"})
     head_fmt = book.add_format(
@@ -36,31 +38,21 @@ def export_excel(
             "valign": "vcenter",
         }
     )
-    text_fmt = book.add_format({"font_color": "#243746"})
-    summary_fmt = book.add_format(
-        {"bold": True, "bg_color": pale, "font_color": "#18324A"}
-    )
     date_fmt = book.add_format({"num_format": "yyyy-mm-dd", "font_color": "#243746"})
     pct_fmt = book.add_format({"num_format": "0%", "font_color": "#243746"})
-    timeline_fmt = book.add_format({"bg_color": blue, "border": 0})
-    summary_bar_fmt = book.add_format({"bg_color": navy, "border": 0})
-    milestone_fmt = book.add_format(
-        {"font_color": navy, "bold": True, "align": "center"}
-    )
     periods = buckets(project.start, project.finish, scale)
+    colors_by_root = project_color_map(tasks)
     fixed_headers = ["Outline", "Task", "Start", "Finish", "Progress"] + (
         ["Assignees"] if show_assignees else []
     )
     first_timeline_col = len(fixed_headers)
     last_col = first_timeline_col + len(periods) - 1
-    sheet.merge_range(
-        0, 0, 0, max(4, last_col), header or project.title or project.name, title_fmt
-    )
+    sheet.merge_range(0, 0, 0, max(4, last_col), header or project.title or project.name, title_fmt)
     if subheader:
         sheet.merge_range(1, 0, 1, max(4, last_col), subheader, subtitle_fmt)
     metadata = []
     if show_generation_date:
-        metadata.append(f"Generated: {date.today().isoformat()}")
+        metadata.append(f"Generated: {datetime.now().astimezone().date().isoformat()}")
     if version:
         metadata.append(f"Version: {version}")
     if metadata:
@@ -75,24 +67,27 @@ def export_excel(
             "bg_color": navy,
             "align": "center",
             "valign": "vcenter",
-            "num_format": "dd"
-            if scale == "daily"
-            else "dd mmm"
-            if scale == "weekly"
-            else "mmm",
+            "num_format": "dd" if scale == "daily" else "dd mmm" if scale == "weekly" else "mmm",
         }
     )
     hidden_date_fmt = book.add_format({"num_format": "yyyy-mm-dd"})
     for col, (period_start, period_end) in enumerate(periods, first_timeline_col):
         sheet.write_datetime(3, col, period_end, hidden_date_fmt)
         sheet.write_datetime(header_row, col, period_start, timeline_head_fmt)
-        sheet.set_column(
-            col, col, 3 if scale == "daily" else 7 if scale == "weekly" else 9
-        )
+        sheet.set_column(col, col, 3 if scale == "daily" else 7 if scale == "weekly" else 9)
     sheet.set_row(3, None, None, {"hidden": True})
 
     for row_index, task in enumerate(tasks, header_row + 1):
-        base = summary_fmt if task.summary else text_fmt
+        bar_color, row_color = task_colors(task, palette, colors_by_root)
+        base = book.add_format(
+            {
+                "bold": task.summary,
+                "bg_color": row_color if palette == "projects" or task.summary else "#FFFFFF",
+                "font_color": "#18324A" if task.summary else "#243746",
+            }
+        )
+        bar_fmt = book.add_format({"bg_color": bar_color, "border": 0})
+        milestone_fmt = book.add_format({"font_color": bar_color, "bold": True, "align": "center"})
         sheet.set_row(row_index, 18, None, {"level": max(0, task.outline_level - 1)})
         sheet.write(row_index, 0, task.outline_number, base)
         sheet.write(row_index, 1, task.name, base)
@@ -125,7 +120,7 @@ def export_excel(
                 {
                     "type": "formula",
                     "criteria": f"=AND({first}$5<=$D{excel_row},{first}$4>$C{excel_row})",
-                    "format": summary_bar_fmt if task.summary else timeline_fmt,
+                    "format": bar_fmt,
                 },
             )
 

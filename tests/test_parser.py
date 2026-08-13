@@ -4,6 +4,7 @@ import pytest
 from pydantic import ValidationError
 
 from libre_gantt.model import Task
+from libre_gantt.palette import project_color_map, task_colors
 from libre_gantt.parser import parse_project
 from libre_gantt.timeline import buckets
 
@@ -37,3 +38,15 @@ def test_task_rejects_unknown_fields() -> None:
     task_data["unknown"] = True
     with pytest.raises(ValidationError):
         Task.model_validate(task_data)
+
+
+def test_project_palette_lightens_subtasks() -> None:
+    tasks = parse_project(Path("project.xml")).tasks
+    colors = project_color_map(tasks)
+    parent, _ = task_colors(tasks[0], "projects", colors)
+    child, _ = task_colors(tasks[1], "projects", colors)
+    other, _ = task_colors(
+        next(task for task in tasks if task.outline_number == "2"), "projects", colors
+    )
+    assert child != parent
+    assert other != parent

@@ -12,6 +12,10 @@ Requires Python 3.14 or newer. `uv` selects the version declared in
 uv run libre-gantt export project.xml --format pdf --paper a3 --timeline weekly
 ```
 
+Use `--palette monochrome` for the default blue treatment, or
+`--palette projects` to give every top-level project a distinct colour and its
+subtasks progressively lighter shades of that colour.
+
 Create an editable workbook with all subtasks and assignees:
 
 ```bash
