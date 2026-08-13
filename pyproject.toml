@@ -16,7 +16,10 @@ dependencies = [
 libre-gantt = "libre_gantt.cli:app"
 
 [dependency-groups]
-dev = ["pytest>=8.0"]
+dev = [
+    "pytest>=8.0",
+    "ruff>=0.16.2",
+]
 
 [build-system]
 requires = ["hatchling"]
