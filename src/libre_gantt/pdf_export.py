@@ -80,7 +80,7 @@ def export_pdf(
         canvas.rect(margin, y_top - timeline_h, width - 2 * margin, timeline_h, fill=1, stroke=0)
         canvas.setFillColor(colors.white)
         canvas.setFont("Helvetica-Bold", 7)
-        x = margin
+        x: float = margin
         for caption, col_w in cols:
             canvas.drawString(x + 3, y_top - 20, caption)
             x += col_w
