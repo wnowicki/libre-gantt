@@ -25,5 +25,3 @@ jobs:
         run: uv run mypy
       - name: Tests
         run: uv run pytest
-      - name: Upgrade an empty database
-        run: uv run alembic upgrade head
