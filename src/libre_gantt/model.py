@@ -1,11 +1,15 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, field
 from datetime import datetime
 
+from pydantic import BaseModel, ConfigDict, Field
 
-@dataclass(slots=True)
-class Task:
+
+class Model(BaseModel):
+    model_config = ConfigDict(extra="forbid", validate_assignment=True)
+
+
+class Task(Model):
     uid: int
     name: str
     outline_number: str
@@ -16,12 +20,11 @@ class Task:
     percent_complete: int
     summary: bool
     milestone: bool
-    predecessor_uids: list[int] = field(default_factory=list)
-    assignees: list[str] = field(default_factory=list)
+    predecessor_uids: list[int] = Field(default_factory=list)
+    assignees: list[str] = Field(default_factory=list)
 
 
-@dataclass(slots=True)
-class Project:
+class Project(Model):
     name: str
     title: str
     manager: str

@@ -3,6 +3,9 @@
 Generate a polished, landscape PDF or an editable Excel Gantt chart from the
 Microsoft Project XML exported by ProjectLibre.
 
+Requires Python 3.14 or newer. `uv` selects the version declared in
+`.python-version` automatically.
+
 ## Run
 
 ```bash
