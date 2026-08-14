@@ -52,6 +52,7 @@ def test_export_rejects_reversed_date_scope(tmp_path: Path) -> None:
             "--end-date",
             "2026-02-01",
         ],
+        color=False,
     )
 
     assert result.exit_code == 2
