@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from pathlib import Path
 from unittest.mock import Mock
 
@@ -56,4 +57,5 @@ def test_export_rejects_reversed_date_scope(tmp_path: Path) -> None:
     )
 
     assert result.exit_code == 2
-    assert "--start-date must be on or before --end-date" in result.output
+    plain_output = re.sub(r"\x1b\[[0-?]*[ -/]*[@-~]", "", result.output)
+    assert "--start-date must be on or before --end-date" in plain_output
