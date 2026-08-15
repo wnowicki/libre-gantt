@@ -1,0 +1,27 @@
+name: Quality
+
+on:
+  pull_request:
+  push:
+    branches: [main, develop]
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.14"
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+      - name: Check lock file and install dependencies
+        run: uv sync --locked --all-groups
+      - name: Ruff lint
+        run: uv run ruff check .
+      - name: Ruff format
+        run: uv run ruff format --check .
+      - name: Static type checking
+        run: uv run mypy
+      - name: Tests
+        run: uv run pytest
